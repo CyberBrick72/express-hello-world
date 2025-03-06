@@ -14,3 +14,11 @@ app.get('/variable', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+<html>
+  <head> </head>
+  <body>
+    <section>
+      Hello from Render!
+    </section>
+  </body>
+  </html>
