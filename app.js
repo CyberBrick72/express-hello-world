@@ -48,8 +48,16 @@ app.get('/', (req, res) => {
 });
 
 // Existing GET endpoint to output the current value as JSON
-app.get('/variable', (req, res) => {
+app.get('/myVariable', (req, res) => {
     res.json({ value: myVariable });
+});
+
+app.get('/soil_moisture', (req, res) => {
+    res.json({ value: soil_moisture });
+});
+
+app.get('/last_watering', (req, res) => {
+    res.json({ value: last_watering });
 });
 
 // Updated POST endpoint to update and output the current value
