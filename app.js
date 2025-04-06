@@ -8,8 +8,7 @@ let myVariable = 0;
 let soil_moisture = "50";
 let last_watering = "10:20";
 
-
-// New GET endpoint for the root URL to display the value in HTML
+// GET endpoint to display the current state in HTML
 app.get('/', (req, res) => {
     const html = `
 <!DOCTYPE html>
@@ -17,29 +16,18 @@ app.get('/', (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>myVariable Value</title>
+    <title>Server Status</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
+        .container { text-align: center; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>The value of myVariable is: ${myVariable}</h1>
+        <h1>Current Values</h1>
+        <p>myVariable: ${myVariable}</p>
+        <p>Soil Moisture: ${soil_moisture}</p>
+        <p>Last Watering: ${last_watering}</p>
     </div>
 </body>
 </html>
@@ -47,7 +35,7 @@ app.get('/', (req, res) => {
     res.send(html);
 });
 
-// Existing GET endpoint to output the current value as JSON
+// GET endpoints for each variable
 app.get('/myVariable', (req, res) => {
     res.json({ value: myVariable });
 });
@@ -60,15 +48,19 @@ app.get('/last_watering', (req, res) => {
     res.json({ value: last_watering });
 });
 
-// Updated POST endpoint to update and output the current value
+// POST endpoint to update variables
 app.post('/update', (req, res) => {
-    const newValue = req.body.myVariable;  // Expecting { "myVariable": <value> } in the request body
-    if (typeof newValue === 'string') {
-        myVariable = newValue;  // Update the variable
-        res.status(200).json({ success: true, value: myVariable });  // Added output of current value
-    } else {
-        res.status(400).json({ error: 'Invalid value' });
+    const body = req.body;
+    if (body.hasOwnProperty("myVariable")) {
+        myVariable = body.myVariable;
     }
+    if (body.hasOwnProperty("soil_moisture")) {
+        soil_moisture = body.soil_moisture;
+    }
+    if (body.hasOwnProperty("last_watering")) {
+        last_watering = body.last_watering;
+    }
+    res.status(200).json({ success: true, myVariable, soil_moisture, last_watering });
 });
 
 app.listen(port, () => {
