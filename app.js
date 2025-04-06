@@ -63,7 +63,7 @@ app.get('/last_watering', (req, res) => {
 // Updated POST endpoint to update and output the current value
 app.post('/update', (req, res) => {
     const newValue = req.body.myVariable;  // Expecting { "myVariable": <value> } in the request body
-    if (typeof newValue === 'number') {
+    if (typeof newValue === 'string') {
         myVariable = newValue;  // Update the variable
         res.status(200).json({ success: true, value: myVariable });  // Added output of current value
     } else {
