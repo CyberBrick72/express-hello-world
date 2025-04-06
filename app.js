@@ -5,8 +5,8 @@ const port = process.env.PORT || 3000;
 app.use(express.json());  // Middleware to parse JSON request bodies
 
 let myVariable = 0;
-let soil_moisture = 0;
-let last_watering = 0;
+let soil_moisture = 50;
+let last_watering = 10:20;
 
 
 // New GET endpoint for the root URL to display the value in HTML
