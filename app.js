@@ -69,7 +69,7 @@ app.get('/remember', (req, res) => {
 });
 
 // POST endpoint to update variables
-app.post('/update', (req, res) => {
+app.post('/ljnkjdhui37rhufeh77fhyh744hf347yfh723ryhf78', (req, res) => {
   const body = req.body;
   if (body.hasOwnProperty("myVariable")) {
     myVariable = body.myVariable;
