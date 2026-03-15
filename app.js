@@ -1,61 +1,112 @@
-const express = require("express");
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const cors = require('cors');
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 
-app.get("/", (req, res) => res.type('html').send(html));
+// CORS middleware - разрешает запросы с любых источников (для разработки)
+app.use(cors());
 
-const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.use(express.json()); // Middleware to parse JSON request bodies
 
-server.keepAliveTimeout = 120 * 1000;
-server.headersTimeout = 120 * 1000;
+// Раздача статических файлов из директории client/dist (продакшн сборка)
+app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
-const html = `
+let myVariable = 0;
+let soil_moisture = "50";
+let last_watering = "10:20";
+let remember = 1000; // default initial value
+
+// Attempt to load "remember" from file (persistent storage)
+try {
+  const data = fs.readFileSync('remember.txt', 'utf8');
+  remember = parseInt(data);
+  if (isNaN(remember)) {
+    remember = 1000;
+  }
+} catch (err) {
+  // File not found or error reading; use default value
+  remember = 1000;
+}
+
+// GET endpoint to display the current state in HTML
+app.get('/', (req, res) => {
+  const html = `
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Hello from Render!</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script>
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          disableForReducedMotion: true
-        });
-      }, 500);
-    </script>
-    <style>
-      @import url("https://p.typekit.net/p.css?s=1&k=vnd5zic&ht=tk&f=39475.39476.39477.39478.39479.39480.39481.39482&a=18673890&app=typekit&e=css");
-      @font-face {
-        font-family: "neo-sans";
-        src: url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
-        font-style: normal;
-        font-weight: 700;
-      }
-      html {
-        font-family: neo-sans;
-        font-weight: 700;
-        font-size: calc(62rem / 16);
-      }
-      body {
-        background: white;
-      }
-      section {
-        border-radius: 1em;
-        padding: 1em;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        margin-right: -50%;
-        transform: translate(-50%, -50%);
-      }
-    </style>
-  </head>
-  <body>
-    <section>
-      Hello from Render!
-    </section>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Status</title>
+  <style>
+    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
+    .container { text-align: center; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Current Values</h1>
+    <p>myVariable: ${myVariable}</p>
+    <p>Soil Moisture: ${soil_moisture}</p>
+    <p>Last Watering: ${last_watering}</p>
+    <p>Remember: ${remember}</p>
+  </div>
+</body>
 </html>
-`
+  `;
+  res.send(html);
+});
+
+// GET endpoints for each variable
+app.get('/myVariable', (req, res) => {
+  res.json({ value: myVariable });
+});
+
+app.get('/soil_moisture', (req, res) => {
+  res.json({ value: soil_moisture });
+});
+
+app.get('/last_watering', (req, res) => {
+  res.json({ value: last_watering });
+});
+
+// New GET endpoint for "remember"
+app.get('/remember', (req, res) => {
+  res.json({ value: remember });
+});
+
+// POST endpoint to update variables
+app.post('/ljnkjdhui37rhufeh77fhyh744hf347yfh723ryhf78', (req, res) => {
+  const body = req.body;
+  if (body.hasOwnProperty("myVariable")) {
+    myVariable = body.myVariable;
+  }
+  if (body.hasOwnProperty("soil_moisture")) {
+    soil_moisture = body.soil_moisture;
+  }
+  if (body.hasOwnProperty("last_watering")) {
+    last_watering = body.last_watering;
+  }
+  // If the request contains "remember", update the persistent variable.
+  if (body.hasOwnProperty("remember")) {
+    remember = body.remember;
+  }
+  // If calibration command is received, set "remember" to the current soil_moisture.
+  if (body.hasOwnProperty("calibrate") && body.calibrate === true) {
+    remember = parseInt(soil_moisture);
+  }
+  // Write the updated "remember" value to file for persistence.
+  fs.writeFileSync('remember.txt', String(remember), 'utf8');
+
+  res.status(200).json({ success: true, myVariable, soil_moisture, last_watering, remember });
+});
+
+// Маршрут для раздачи index.html для всех остальных запросов (SPA fallback)
+app.get('/{*path}', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
