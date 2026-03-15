@@ -96,8 +96,13 @@ app.post('/ljnkjdhui37rhufeh77fhyh744hf347yfh723ryhf78', (req, res) => {
   if (body.hasOwnProperty("calibrate") && body.calibrate === true) {
     remember = parseInt(soil_moisture);
   }
-  // Write the updated "remember" value to file for persistence.
-  fs.writeFileSync('remember.txt', String(remember), 'utf8');
+  // Write the updated "remember" value to file for persistence (with error handling for Render).
+  try {
+    fs.writeFileSync('remember.txt', String(remember), 'utf8');
+  } catch (err) {
+    console.error('Warning: Could not persist "remember" to file:', err.message);
+    // На Render файловая система эфемерная, ошибка записи — нормальное явление
+  }
 
   res.status(200).json({ success: true, myVariable, soil_moisture, last_watering, remember });
 });
