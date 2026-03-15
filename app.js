@@ -78,22 +78,23 @@ app.get('/remember', (req, res) => {
 
 // POST endpoint to update variables
 app.post('/ljnkjdhui37rhufeh77fhyh744hf347yfh723ryhf78', (req, res) => {
-  const body = req.body;
-  if (body.hasOwnProperty("myVariable")) {
+  const body = req.body || {};
+  
+  if ('myVariable' in body) {
     myVariable = body.myVariable;
   }
-  if (body.hasOwnProperty("soil_moisture")) {
+  if ('soil_moisture' in body) {
     soil_moisture = body.soil_moisture;
   }
-  if (body.hasOwnProperty("last_watering")) {
+  if ('last_watering' in body) {
     last_watering = body.last_watering;
   }
   // If the request contains "remember", update the persistent variable.
-  if (body.hasOwnProperty("remember")) {
+  if ('remember' in body) {
     remember = body.remember;
   }
   // If calibration command is received, set "remember" to the current soil_moisture.
-  if (body.hasOwnProperty("calibrate") && body.calibrate === true) {
+  if ('calibrate' in body && body.calibrate === true) {
     remember = parseInt(soil_moisture);
   }
   // Write the updated "remember" value to file for persistence (with error handling for Render).
