@@ -1,10 +1,13 @@
 services:
   - type: web
-    name: express-hello-world
-    runtime: node
+    name: my-express-app
+    env: node
+    region: frankfurt
     plan: free
-    buildCommand: yarn install --frozen-lockfile
-    startCommand: node app.js
+    buildCommand: npm install
+    startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 3000
