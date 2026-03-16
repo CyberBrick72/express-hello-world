@@ -13,22 +13,41 @@ app.use(express.json()); // Middleware to parse JSON request bodies
 // Раздача статических файлов из директории client/dist (продакшн сборка)
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
+// Путь к файлу данных
+const DATA_FILE = path.join(__dirname, 'data.json');
+
+// Загрузка данных из файла при старте сервера
 let myVariable = 0;
 let soil_moisture = "50";
 let last_watering = "10:20";
-let remember = 1000; // default initial value
+let remember = 1000;
 
-// Attempt to load "remember" from file (persistent storage)
-try {
-  const data = fs.readFileSync('remember.txt', 'utf8');
-  remember = parseInt(data);
-  if (isNaN(remember)) {
-    remember = 1000;
+function loadData() {
+  try {
+    const data = fs.readFileSync(DATA_FILE, 'utf8');
+    const parsed = JSON.parse(data);
+    myVariable = parsed.myVariable ?? 0;
+    soil_moisture = parsed.soil_moisture ?? "50";
+    last_watering = parsed.last_watering ?? "10:20";
+    remember = parsed.remember ?? 1000;
+    console.log('[DATA] Loaded from file:', parsed);
+  } catch (err) {
+    console.log('[DATA] File not found, using defaults');
   }
-} catch (err) {
-  // File not found or error reading; use default value
-  remember = 1000;
 }
+
+function saveData() {
+  try {
+    const data = { myVariable, soil_moisture, last_watering, remember };
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+    console.log('[DATA] Saved to file:', data);
+  } catch (err) {
+    console.error('[DATA] Could not save to file:', err.message);
+  }
+}
+
+// Загружаем данные при старте
+loadData();
 
 // GET endpoint to display the current state in HTML
 app.get('/', (req, res) => {
@@ -79,7 +98,8 @@ app.get('/remember', (req, res) => {
 // POST endpoint to update variables
 app.post('/ljnkjdhui37rhufeh77fhyh744hf347yfh723ryhf78', (req, res) => {
   const body = req.body || {};
-  
+  console.log('[POST] Received:', JSON.stringify(body));
+
   if ('myVariable' in body) {
     myVariable = body.myVariable;
   }
@@ -97,13 +117,9 @@ app.post('/ljnkjdhui37rhufeh77fhyh744hf347yfh723ryhf78', (req, res) => {
   if ('calibrate' in body && body.calibrate === true) {
     remember = parseInt(soil_moisture);
   }
-  // Write the updated "remember" value to file for persistence (with error handling for Render).
-  try {
-    fs.writeFileSync('remember.txt', String(remember), 'utf8');
-  } catch (err) {
-    console.error('Warning: Could not persist "remember" to file:', err.message);
-    // На Render файловая система эфемерная, ошибка записи — нормальное явление
-  }
+  
+  // Сохраняем данные в файл
+  saveData();
 
   res.status(200).json({ success: true, myVariable, soil_moisture, last_watering, remember });
 });
